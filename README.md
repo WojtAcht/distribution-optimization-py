@@ -1,37 +1,28 @@
 # distribution-optimization-py: Distribution Optimization in Python
 
-A Gaussian Mixture Model (GMM) is a probabilistic model that assumes all the data points are generated from a mixture of a finite number of Gaussian distributions with unknown parameters. The GMM is here rephrased as an optimization problem and solved using a Hierarchic Memetic Strategy (HMS). This approach diverges from the traditional Likelihood Maximization, Expectation Maximization approach. Instead, it introduces a fitness function that combines the chi-square test, used for analyzing distributions, with an innovative metric designed to estimate the overlapping area under the curves among various Gaussian distributions. This library offers an implementation of [DistributionOptimization](https://cran.r-project.org/web/packages/DistributionOptimization/index.html) in Python.
-
-### Quick start
-
-Read data (LKWFahrzeitSeehafen2010 - Truck driving time seaport 2010):
-
-```python
-import pandas as pd
-truck_driving_data = pd.read_csv("./data/truck_driving_data.csv")["value"].values
+Install required dependencies:
+```bash
+poetry install --with dev
 ```
 
-Fit GMM using HMS and plot results:
+To reproduce ELA classification results use: `experiments/ela_analysis.ipynb`.
 
-```python
-from distribution_optimization_py.gaussian_mixture import GaussianMixture
-gmm = GaussianMixture(n_components=3, algorithm="HMS", random_state=42)
-gmm.fit(truck_driving_data)
-probabilities = gmm.predict_proba(truck_driving_data)
-gmm.plot()
-```
+To reproduce datasets used for experiments use `experiments/create_datasets.ipynb`.
 
-![GMM Plot](images/plot.png)
+Hyperparameter optimization scripts:
 
-### Supported optimization algorithms
+* `scripts/optuna_cma_es_bipop_chromatogram_time.py`
+* `scripts/optuna_de_ilshade_chromatogram_time.py`
+* `scripts/optuna_hms_chromatogram_time.py`
+* `R/optimize_hyperparams.R`
 
-| algorithm | Description                                                  | library   |
-|-----------|--------------------------------------------------------------|-----------|
-| "HMS"     | Hierarchic Memetic Strategy                                  | `pyhms`   |
-| "CMA-ES"  | Covariance Matrix Adaptation Evolution Strategy              | `pycma`   |
-| "GA"      | Genetic Algorithm using operators inspired by R package `GA` | `leap_ec` |
-| "DE"    | Differential Evolution iL-SHADE                                | `pyade.ilshade` |
+Notebooks (+ script) employed to save solutions:
 
-### Relevant literature
-- Lerch, F., Ultsch, A. & Lötsch, J. Distribution Optimization: An evolutionary algorithm to separate Gaussian mixtures. Sci Rep 10, 648 (2020). doi: [10.1038/s41598-020-57432-w](https://doi.org/10.1038/s41598-020-57432-w)
-- J. Sawicki, M. Łoś, M. Smołka, J. Alvarez-Aramberri. Using Covariance Matrix Adaptation Evolutionary Strategy to boost the search accuracy in hierarchic memetic computations. Journal of computational science, 34, 48-54, 2019. doi: [10.1016/j.jocs.2019.04.005](https://doi.org/10.1016/j.jocs.2019.04.005)
+* `experiments/cma_es_bipop.ipynb`
+* `experiments/ilshade.ipynb`
+* `experiments/hms_scaled.ipynb`
+* `R/distribution_optimization.R`
+
+Tables, boxplots were generated using `R/distribution_optimization.R`.
+
+The source code for DistributionOptimization can be found in `R/DistributionOptimization`. It was adjusted with objective function wrapper -- to make sure that the budget is not exceeded.

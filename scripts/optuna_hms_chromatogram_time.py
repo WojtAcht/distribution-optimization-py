@@ -12,8 +12,8 @@ from pyhms.problem import EvalCutoffProblem
 from pyhms.sprout.sprout_filters import DemeLimit, LevelLimit, NBC_FarEnough
 from pyhms.sprout.sprout_generators import NBC_Generator
 from pyhms.sprout.sprout_mechanisms import SproutMechanism
-from pyhms.stop_conditions.gsc import singular_problem_eval_limit_reached
-from pyhms.stop_conditions.usc import dont_stop, metaepoch_limit
+from pyhms.stop_conditions.gsc import SingularProblemEvalLimitReached
+from pyhms.stop_conditions.usc import DontStop, MetaepochLimit
 from pyhms.tree import DemeTree
 
 
@@ -29,7 +29,7 @@ BUDGET = 5000
 
 if __name__ == "__main__":
     study = optuna.create_study(
-        study_name=f"{DATASET_NAME}_{BUDGET}_ea_cma_es_scaled_with_weights",
+        study_name=f"{DATASET_NAME}_{BUDGET}_hms_ea_cma_es",
         storage="sqlite:///example.db",
         direction="minimize",
     )
@@ -47,6 +47,7 @@ if __name__ == "__main__":
         generations2 = trial.suggest_int("generations2", 3, 30)
         metaepoch2 = trial.suggest_int("metaepoch2", 10, 50)
         sigma2 = trial.suggest_float("sigma2", 0.1, 3.0)
+        use_warm_start = trial.suggest_categorical("use_warm_start", [True, False])
 
         solutions = []
         for seed in range(1, 11):
@@ -64,16 +65,17 @@ if __name__ == "__main__":
                     problem=cutoff_problem,
                     bounds=bounds,
                     pop_size=pop1,
-                    lsc=dont_stop(),
+                    lsc=DontStop(),
                     k_elites=k_elites1,
                     representation=Representation(initialize=problem.initialize),
                     p_mutation=p_mutation1,
                     p_crossover=p_crossover1,
+                    use_warm_start=use_warm_start,
                 ),
                 CMALevelConfig(
                     problem=cutoff_problem,
                     bounds=bounds,
-                    lsc=metaepoch_limit(metaepoch2),
+                    lsc=MetaepochLimit(metaepoch2),
                     sigma0=sigma2,
                     generations=generations2,
                     random_state=seed,
@@ -85,7 +87,7 @@ if __name__ == "__main__":
                 [NBC_FarEnough(nbc_far, 2), DemeLimit(1)],
                 [LevelLimit(level_limit)],
             )
-            gsc = singular_problem_eval_limit_reached(BUDGET)
+            gsc = SingularProblemEvalLimitReached(BUDGET)
             tree_config = TreeConfig(config, gsc, sprout, options)
             deme_tree = DemeTree(tree_config)
             deme_tree.run()
